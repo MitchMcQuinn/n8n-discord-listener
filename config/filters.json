@@ -1,0 +1,16 @@
+{
+  "channels": {
+    "whitelist": [],
+    "blacklist": []
+  },
+  "users": {
+    "whitelist": [],
+    "blacklist": []
+  },
+  "content": {
+    "keywords": [],
+    "regex": [],
+    "ignoreBots": true,
+    "ignoreDMs": true
+  }
+}
