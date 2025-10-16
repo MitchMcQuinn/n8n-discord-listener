@@ -133,9 +133,15 @@ The bot sends the following JSON payload to your n8n webhook:
   "timestamp": "2024-01-01T12:00:00.000Z",
   "guildId": "2222222222222222222",
   "channelName": "general",
-  "guildName": "My Server"
+  "guildName": "My Server",
+  "referencedMessageId": "1234567890123456788",
+  "referencedMessageType": "0"
 }
 ```
+
+**Field Descriptions:**
+- `referencedMessageId`: The ID of the message being referenced (if this message is a reply or quote)
+- `referencedMessageType`: The type of reference (0 = reply, 1 = quote, etc.)
 
 ### Replying to Messages
 
@@ -150,42 +156,146 @@ To reply to Discord messages from your n8n workflow:
 
 ## 🚀 Deployment on Sparkedhost
 
-### 1. Prepare Your Application
+### Method 1: GitHub Integration (Recommended)
+
+#### 1. Connect GitHub Repository to Sparkedhost
+
+1. **Log into your Sparkedhost control panel**
+2. **Navigate to your Node.js application**
+3. **Go to "Deployments" or "Git" section**
+4. **Connect your GitHub repository:**
+   - Click "Connect GitHub" or "Link Repository"
+   - Authorize Sparkedhost to access your GitHub account
+   - Select your `n8n-discord-listener` repository
+   - Choose the branch (usually `main` or `master`)
+
+#### 2. Configure Build Settings
+
+In your Sparkedhost control panel:
+
+1. **Set Build Command:**
+   ```bash
+   npm run build
+   ```
+
+2. **Set Start Command:**
+   ```bash
+   npm start
+   ```
+
+3. **Set Node.js Version:**
+   - Choose Node.js 18 or 20 (recommended)
+   - Ensure compatibility with your project
+
+#### 3. Configure Environment Variables
+
+In your Sparkedhost control panel:
+
+1. **Go to "Environment Variables" or "Config" section**
+2. **Add the following variables:**
+   ```
+   DISCORD_BOT_TOKEN=your_actual_discord_bot_token
+   N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/discord-listener
+   FILTERS_CONFIG_PATH=config/filters.json
+   LOG_LEVEL=info
+   NODE_ENV=production
+   ```
+
+#### 4. Deploy
+
+1. **Click "Deploy" or "Redeploy"**
+2. **Monitor the build logs** for any errors
+3. **Check the application logs** to ensure the bot starts successfully
+
+### Method 2: Manual Upload
+
+#### 1. Prepare Your Application Locally
 
 ```bash
+# Build the application
 npm run build
+
+# Create deployment package
+tar -czf discord-bot.tar.gz dist/ config/ package.json package-lock.json
 ```
 
-### 2. Upload to Sparkedhost
+#### 2. Upload to Sparkedhost
 
-Upload the following files/folders to your Sparkedhost server:
-- `dist/` (compiled JavaScript)
-- `config/` (filters configuration)
-- `package.json`
-- `.env` (with your production values)
+1. **Upload the files** via Sparkedhost file manager or SFTP:
+   - `dist/` (compiled JavaScript)
+   - `config/` (filters configuration)
+   - `package.json`
+   - `package-lock.json`
 
-### 3. Install Dependencies on Server
+#### 3. Configure on Server
+
+1. **Set environment variables** in Sparkedhost control panel
+2. **Install dependencies:**
+   ```bash
+   npm install --production
+   ```
+3. **Start the application:**
+   ```bash
+   npm start
+   ```
+
+### Production Optimization
+
+#### Using PM2 Process Manager
+
+For better reliability and process management:
+
+1. **Install PM2 globally:**
+   ```bash
+   npm install -g pm2
+   ```
+
+2. **Create PM2 ecosystem file** (`ecosystem.config.js`):
+   ```javascript
+   module.exports = {
+     apps: [{
+       name: 'discord-listener',
+       script: 'dist/index.js',
+       instances: 1,
+       autorestart: true,
+       watch: false,
+       max_memory_restart: '1G',
+       env: {
+         NODE_ENV: 'production'
+       }
+     }]
+   };
+   ```
+
+3. **Start with PM2:**
+   ```bash
+   pm2 start ecosystem.config.js
+   pm2 save
+   pm2 startup
+   ```
+
+### Monitoring and Maintenance
+
+#### Check Application Status
 
 ```bash
-npm install --production
+# View logs
+pm2 logs discord-listener
+
+# Check status
+pm2 status
+
+# Restart if needed
+pm2 restart discord-listener
 ```
 
-### 4. Start the Application
+#### Troubleshooting Deployment Issues
 
-```bash
-npm start
-```
-
-### 5. Keep Running (Optional)
-
-For production, consider using a process manager like PM2:
-
-```bash
-npm install -g pm2
-pm2 start dist/index.js --name discord-listener
-pm2 save
-pm2 startup
-```
+1. **Check build logs** in Sparkedhost control panel
+2. **Verify environment variables** are set correctly
+3. **Ensure Node.js version** compatibility
+4. **Check Discord bot permissions** and token validity
+5. **Verify n8n webhook URL** is accessible
 
 ## 🔧 Troubleshooting
 

@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { MessageFilters } from '../../types.js';
+import { MessageFilters } from '../types.js';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -95,7 +95,7 @@ function checkContentFilters(message: Message, contentFilters?: MessageFilters['
 
   // Check keyword filters
   if (contentFilters.keywords && contentFilters.keywords.length > 0) {
-    const hasKeyword = contentFilters.keywords.some(keyword => 
+    const hasKeyword = contentFilters.keywords.some((keyword: string) => 
       content.includes(keyword.toLowerCase())
     );
     if (!hasKeyword) {
@@ -106,7 +106,7 @@ function checkContentFilters(message: Message, contentFilters?: MessageFilters['
 
   // Check regex filters
   if (contentFilters.regex && contentFilters.regex.length > 0) {
-    const matchesRegex = contentFilters.regex.some(pattern => {
+    const matchesRegex = contentFilters.regex.some((pattern: string) => {
       try {
         const regex = new RegExp(pattern, 'i');
         return regex.test(content);

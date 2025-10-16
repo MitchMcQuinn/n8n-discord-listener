@@ -16,7 +16,8 @@ export async function handleMessage(message: Message, config: BotConfig): Promis
     return;
   }
 
-  console.log(`📨 Message received from ${message.author.username} in #${message.channel.name || 'unknown'}`);
+  const channelName = message.channel.isTextBased() && 'name' in message.channel ? message.channel.name : 'unknown';
+  console.log(`📨 Message received from ${message.author.username} in #${channelName}`);
 
   try {
     // Load and evaluate filters
@@ -29,6 +30,17 @@ export async function handleMessage(message: Message, config: BotConfig): Promis
 
     console.log(`✅ Message passed filters from ${message.author.username}`);
 
+    // Debug: Log reference information
+    console.log(`🔍 Message reference debug:`, {
+      hasReference: !!message.reference,
+      reference: message.reference,
+      messageId: message.reference?.messageId,
+      referenceType: message.reference?.type,
+      messageContent: message.content,
+      messageType: message.type,
+      isReply: message.type === 19 // 19 is the REPLY message type
+    });
+
     // Prepare message data for n8n
     const messageData: DiscordMessageData = {
       messageId: message.id,
@@ -37,10 +49,15 @@ export async function handleMessage(message: Message, config: BotConfig): Promis
       authorUsername: message.author.username,
       content: message.content,
       timestamp: message.createdAt.toISOString(),
-      guildId: message.guild?.id || null,
-      channelName: message.channel.isTextBased() ? message.channel.name : undefined,
-      guildName: message.guild?.name
+      guildId: message.guild?.id,
+      channelName: message.channel.isTextBased() && 'name' in message.channel ? (message.channel.name || undefined) : undefined,
+      guildName: message.guild?.name,
+      referencedMessageId: message.reference?.messageId,
+      referencedMessageType: message.reference?.type?.toString()
     };
+
+    // Debug: Log the exact data being sent to n8n
+    console.log(`📤 Sending to n8n:`, JSON.stringify(messageData, null, 2));
 
     // Send to n8n webhook
     await sendToN8n(messageData, config.n8nWebhookUrl);

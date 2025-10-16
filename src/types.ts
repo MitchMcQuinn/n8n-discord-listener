@@ -31,9 +31,11 @@ export interface DiscordMessageData {
   authorUsername: string;
   content: string;
   timestamp: string;
-  guildId: string | null;
+  guildId?: string;
   channelName?: string;
   guildName?: string;
+  referencedMessageId?: string;
+  referencedMessageType?: string;
 }
 
 export interface LogLevel {
